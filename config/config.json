@@ -1,0 +1,27 @@
+{
+  "$schema": "https://dev.office.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "wgo-global-nav-application-customizer": {
+      "components": [
+        {
+          "entrypoint": "./lib/extensions/wgoGlobalNav/WgoGlobalNavApplicationCustomizer.js",
+          "manifest": "./src/extensions/wgoGlobalNav/WgoGlobalNavApplicationCustomizer.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {
+    "jquery":{
+      "path": "https://code.jquery.com/jquery-2.2.4.min.js",
+      "globalName": "jQuery"
+    }
+    
+  },
+  
+  "localizedResources": {
+    "WgoGlobalNavApplicationCustomizerStrings": "lib/extensions/wgoGlobalNav/loc/{locale}.js"
+    
+  }
+  
+}

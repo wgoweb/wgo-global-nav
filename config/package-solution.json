@@ -1,0 +1,13 @@
+{
+  "$schema": "https://dev.office.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "wgo-global-nav-client-side-solution",
+    "id": "498f3a1b-83b5-4915-a4bb-fadac59cf257",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true
+  },
+  "paths": {
+    "zippedPackage": "solution/wgo-global-nav.sppkg"
+  }
+}

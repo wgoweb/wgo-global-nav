@@ -1,0 +1,8 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "version": "1.4.0",
+    "libraryName": "wgo-global-nav",
+    "libraryId": "498f3a1b-83b5-4915-a4bb-fadac59cf257",
+    "environment": "spo"
+  }
+}
