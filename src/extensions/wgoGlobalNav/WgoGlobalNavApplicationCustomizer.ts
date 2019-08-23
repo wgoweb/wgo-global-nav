@@ -6,7 +6,7 @@ import {
   PlaceholderName,
 } from '@microsoft/sp-application-base';
 //import { Dialog } from '@microsoft/sp-dialog';
-import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
+import { SPHttpClient, SPHttpClientBatch, SPHttpClientResponse } from '@microsoft/sp-http';
 
 
 import * as strings from 'WgoGlobalNavApplicationCustomizerStrings';
@@ -35,9 +35,9 @@ export interface IWgoGlobalNavApplicationCustomizerProperties {
   Bottom: string;
 }
 export interface GlobalNav {
-  Title: string;
-  Url: string;
-  Header: string;
+  Title?: string;
+  Url?: string;
+  Header?: string;
 
 
 }
@@ -57,7 +57,7 @@ export default class WgoGlobalNavApplicationCustomizer
   @override
   public onInit(): Promise<void> {
     
-    this._showBenefitLinks()
+    this._getSubMenus();
     
     console.log('Available placeholders: ',
     this.context.placeholderProvider.placeholderNames.map(name => PlaceholderName[name]).join(', '));
@@ -235,25 +235,75 @@ export default class WgoGlobalNavApplicationCustomizer
 
     return Promise.resolve();
   }
-  public _getBenefitsSubLinks(subGroup: GlobalNav[]):Promise<GlobalNavList> {
+  private async _getBenefitsLinks(subGroup: string[]) {
     //let leftLinks: any[];
     let navLinks: string;
     const spHttpClient: SPHttpClient = this.context.spHttpClient;
     const currentWebUrl: string = this.context.pageContext.web.absoluteUrl;
-
-    
-     return this.context.spHttpClient.get(this.context.pageContext.web.absoluteUrl + `/_api/web/lists/getByTitle('GlobalNavMenu')/items?$filter=SubGroup eq '` + subGroup + `'`, SPHttpClient.configurations.v1)
+    this.context.spHttpClient.get(this.context.pageContext.web.absoluteUrl + `/_api/web/lists/getByTitle('GlobalNavMenu')/items`, SPHttpClient.configurations.v1)
     .then((response: SPHttpClientResponse) => {
       //var reactHandler = this;
-        return response.json()
+        response.json().then((benefit: any) => {
+          var benefits = benefit.value;
+          console.log("Benefits: " + benefits)
+          benefits.forEach(benefit => {
+            console.log("Benefits: " + benefit.Title)
+          })
+        })
+      })
+    
       
-      
-    })
+    }
   
   
+  private async _getBenefitsSubLinks(subGroup: string[]) {
+    //let leftLinks: any[];
+    let navLinks: string;
+    const spHttpClient: SPHttpClient = this.context.spHttpClient;
+    const currentWebUrl: string = this.context.pageContext.web.absoluteUrl;
+    this.context.spHttpClient.get(this.context.pageContext.web.absoluteUrl + `/_api/web/lists/getByTitle('GlobalNavMenu')/items?$filter=SubGroup eq '` + subGroup + `'`, SPHttpClient.configurations.v1)
+    .then((response: SPHttpClientResponse) => {
+      //var reactHandler = this;
+        response.json().then((benefit: any) => {
+          var benefits = benefit.value;
+          console.log("Benefits: " + benefits)
+          benefits.forEach(benefit => {
+            console.log("Benefits: " + benefit.Title)
+          })
+        })
+      })
+    
+      
+    }
+  
+  
+  
+
+  private async _getSubMenus() {
+    let html: string = '';
+    let benefitNames: string[] = ['Departments'];
+    await this._getBenefitsLinks(benefitNames);
+    await this._getBenefitsSubLinks(benefitNames);
+
+    
+    
+    /*defaultReports.forEach((report: GlobalNav) => 
+      html += report.Title);
+    console.log("Benefits Responses : " + html);*/
+    //let subNavs: string = '';
+      
+      //response.json();
+  
+
   }
-  private _getSubMenus(subNavs: GlobalNav[]) {
-    let html: string='';
+  /*private async _getSubMenus() {
+    let html: string = '';
+    let benefitNames: string[] = ['Departments'];
+    let benefits: GlobalNav[] = await this._showBenefitLinks(benefitNames);
+      
+    benefits.forEach((benefit: GlobalNav) => 
+      html += benefit.Title);
+    console.log("Benefits Responses : " + html);
     //let subNavs: string = '';
       
       //response.json();
@@ -261,39 +311,29 @@ export default class WgoGlobalNavApplicationCustomizer
 
   }
   
-  public _showBenefitLinks(items: GlobalNav[]) {
-    let html: string = '';
+  private async _showBenefitLinks(benefitLinks: string[]):Promise<GlobalNav[]> {
+    const arrayOfBenefits: GlobalNav[] = [];
+    //const spBatch: SPHttpClientBatch = this.context.spHttpClient.beginBatch();
+    const benefitResponses: Promise<SPHttpClientResponse>[] = [];
     
-    sp.web.lists.getByTitle("GlobalNavMenu").items.select("Title","Url", "SubGroup", "Header").get().then(response => {
-      
-      response.forEach(nav => {
-        console.log(nav.Title);
-        //return response;
-        //const subNav = sp.web.lists.getByTitle("GlobalNavMenu").items.select("Title", "Url","SubGroup").filter("Subgroup eq" + nav.SubGroup).get();
-        
-        if(nav.Header = "Yes") {
-          html += this._getBenefitsSubLinks(nav.SubGroup);
-          console.log("SUBHTML TITLE " + this._getBenefitsSubLinks(nav.SubGroup).then((response) => {
-            response.value;
-          }))
-          console.log(items.forEach((item:GlobalNav) => {
-            `TITLe: ` + item.Title;
-          }))
-         };
-                     
-        
-        if(nav.Header = "No"){
-          `
-        <li><a href="${nav.Url}">${nav.Title}</li>
-        `
-        }
-      })
     
-      
-    });
+    for (const benefitLink of benefitLinks) {
+      const getBenefitsList: Promise<SPHttpClientResponse> =this.context.spHttpClient.get(this.context.pageContext.web.absoluteUrl + `/_api/web/lists/getByTitle('GlobalNavMenu')/items?$filter=SubGroup eq'` + benefitLink + `'`, SPHttpClient.configurations.v1)
+      benefitResponses.push(getBenefitsList);
+    }
+    //await spBatch.execute();
+
+    for (let benefitResponse of benefitResponses) {
+      let itemResponse:SPHttpClientResponse = await benefitResponse;
+      let responseJSON: GlobalNav = await itemResponse.json();
+      console.log("RESP JSON :" + responseJSON);
+      arrayOfBenefits.push(responseJSON)
+    }
+    return arrayOfBenefits;
+
       
      
-    }
+    }*/
 
   }
 
