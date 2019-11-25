@@ -3,9 +3,24 @@
   "solution": {
     "name": "wgo-global-nav-client-side-solution",
     "id": "498f3a1b-83b5-4915-a4bb-fadac59cf257",
-    "version": "1.0.0.0",
+    "version": "1.0.0.4",
     "includeClientSideAssets": true,
-    "skipFeatureDeployment": true
+    "skipFeatureDeployment": false,
+    "features": [
+      {
+        "title": "WGO-Global-Nav",
+        "description": "Creates a new Glbal Nav for the Source",
+        "id": "f95bf07a-6ca9-433d-8d6d-457bcfa3547a",
+        "version": "1.0.0.4",
+        "assets": {
+          "elementManifests": [
+            "elements.xml"
+          ]
+
+        }
+
+      }
+    ]
   },
   "paths": {
     "zippedPackage": "solution/wgo-global-nav.sppkg"

@@ -8,11 +8,10 @@ import {
 //import { Dialog } from '@microsoft/sp-dialog';
 import { SPHttpClient, SPHttpClientBatch, SPHttpClientResponse } from '@microsoft/sp-http';
 
-
 import * as strings from 'WgoGlobalNavApplicationCustomizerStrings';
 
 import * as $ from 'jquery';
-
+// Use the component loader for adding external Javascript, like jQuery UI
 import { SPComponentLoader } from '@microsoft/sp-loader';
 
 import 'jqueryui';
@@ -57,10 +56,9 @@ export default class WgoGlobalNavApplicationCustomizer
   @override
   public onInit(): Promise<void> {
     
-    this._getSubMenus();
-    
     console.log('Available placeholders: ',
     this.context.placeholderProvider.placeholderNames.map(name => PlaceholderName[name]).join(', '));
+   // Here is the component loader for jQuery UI
     SPComponentLoader.loadCss('https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.min.css');
     
     //this._getBenefitsLinks()
@@ -139,63 +137,114 @@ export default class WgoGlobalNavApplicationCustomizer
         .ui-widget {
             font-family: inherit;
             font-size: inherit;
+        } 
+        .ui-widget-content{
+          border: none;
         }
         
         
         </style>
-        <div style="float: left; margin-left: 15px; margin-top: 10px">
-          <div><img src="https://winnebagoind.sharepoint.com/sites/HumanResources/SiteAssets/logos/Winnebago-ind-250.jpg" height="35px" width="125px"></div>
-        </div>
-        <div>
-        <ul id="menu">
-        <li><a href="https://winnebagoind.sharepoint.com/_layouts/15/me.aspx?v=profile">Directory</a></li>
-        <li>Departments
-            <ul>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/it-dept/SitePages/Home.aspx">Information Technology</a></li>
-            </ul>
-          </li>
-          <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/Winnebago-Locations.aspx">Locations</a>
-            <ul>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/Enterprise.aspx?web=1">Enterprise</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/Motorhome.aspx?web=1">Winnebago Motorhome</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/WGO-Towables.aspx?web=1">Winnebago Towables</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/Grand-Design.aspx">Grand Design RV</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/Chris-Craft.aspx">Chris-Craft</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/Specialty-Vehicle.aspx?web=1">Specialty Vehicles</a></li>
-            </ul>
-          </li>
-          <li><a href="https://winnebagoind.service-now.com/sp">IT Service Desk</a></li>
-          <li>Tools and Links
-            <ul>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/Templates%20and%20Documents?web=1">Forms and Templates</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/Policies-and-Procedures.aspx?web=1">Policies and Procedures</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/My-Apps-and-Links.aspx">My Apps and Links</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/_layouts/15/Events.aspx?ListGuid=595b423b-2f8c-4929-86a8-7f575059961d&web=1">Upcoming events</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/Collaboration.aspx">Collaboration</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/_layouts/15/me.aspx?v=profile">Directory and Org Chart</a></li>
-            </ul>
-          </li>
-          <li><a href="">Business Units</a>
-            <ul>  
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/">Enterprise</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/WinnebagoMotorized">Motorhome</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/WinnebagoTowables">Towables</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/Grand-Design.aspx">Grand Design RV</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/employees/SitePages/Chris-Craft.aspx">Chris-Craft</a></li>
-              <li><a href="https://winnebagoind.sharepoint.com/sites/SpecialtyVehicles">Specialty Vehicles</a></li>
-            </ul>
-          </li>
-        </ul>
-        </div>
         
+        <div id="testList"></div>
         `;
+        // Call the main manu section
+        this._getBenefitsLinks();
+      
+    }
+  }
 
-       
-          //${escape(topString)}
-        // JQUERY UI 
+    let message: string = this.properties.testMessage;
+    if (!message) {
+      message = '(No properties were provided.)';
+    }
 
+    //Dialog.alert(`Hello from ${strings.Title}:\n\n${message}`);
+
+    return Promise.resolve();
+  }
+  private async _getBenefitsLinks() {
+    console.log("GET BENEFITS RUN")
+    //let leftLinks: any[];
+    var b: number = 0;
+    let html: string = "";
+    let navLinks: string;
+    const spHttpClient: SPHttpClient = this.context.spHttpClient;
+    const currentWebUrl: string = this.context.pageContext.web.absoluteUrl;
+    html += `
+    <div>
+    <ul class="menu">
+    `
+    // This calls the SharePoint Rest API
+    this.context.spHttpClient.get(`https://winnebagoind.sharepoint.com/sites/HumanResources/_api/web/lists/getByTitle('GlobalNavMenu')/items`, SPHttpClient.configurations.v1)
+    .then((response: SPHttpClientResponse): Promise<any> => {
+      //var reactHandler = this;
+        
+      return response.json()})
+        .then((benefit: any): void => {
+          //var benefits = benefit.value;
+          console.log(benefit)
+
+          var a: number = 0;
+          var subNav = { menus:[] };
+          html += 
+          `<div style="float: left; margin-left: 15px; margin-top: 10px">
+          <div><img src="https://winnebagoind.sharepoint.com/sites/HumanResources/SiteAssets/logos/Winnebago-ind-250.jpg" height="35px" width="125px"></div>
+        </div>`;
+          benefit.value.forEach(ben => {
+            var num = 0; 
+            var subGroup = benefit.value[a].SubGroup;
+            console.log('SUBHEAD: ' + subGroup);
+            // Find headers with no SubMenus
+            if(benefit.value[a].Header == "No" && benefit.value[a].SubHead == "No"){
+            //console.log("NO: " + benefit.Title)
+              html +=
+              `
+              <li><a href="${benefit.value[a].Url}">${benefit.value[a].Title}</a></li>
+              `
+            }
+            
+            // Loop through and find the menus that are headers to Submenus
+            if(benefit.value[a].Header == "Yes") {
+        
+              html +=
+              // For each on e build the list item and a sub list ul
+              // Note that we dynamically add an ID with the SubHead so that the jQuery function below can find the dom element
+              `
+              <li>${benefit.value[a].Title}
+                <ul id="${benefit.value[a].SubGroup}" class="subMenu"></ul>
+              `;
+                         
+            }
+            // Build a new array here for all of the items that are subheaders
+            if (benefit.value[a].SubHead == "Yes") {
+              console.log('NEW SUBHEAD: ' + benefit.value[a].Title);
+              subNav.menus.push({
+                "Title" : benefit.value[a].Title,
+                "Url" : benefit.value[a].Url,
+                "SubGroup" : benefit.value[a].SubGroup 
+              })
+
+            }
+            // Increment the array
+            a++;
+          });
+          //console.log(html);
+          //console.log("SUBNAV ARRAY: " + subNav)
+          
+         // Close the list
+          html+=
+          `</ul></div>`;
+          // For each SubMenu, append it to the created HTML above if the ID matchesd the SubGroup
+          $('#testList').html(html);
+          subNav.menus.forEach(function(e) {
+            console.log("SUBNAV RESULT " + subNav.menus[b].Title + 'SUBGROUP NAME: ' + subNav.menus[b].SubGroup);
+            $('#' + subNav.menus[b].SubGroup).append('<li class="subMenuLi"><a href="' + subNav.menus[b].Url + '">' + subNav.menus[b].Title + '</li>');
+            //$("#Departments").append('<li class="subMenuLi"><a href="' + subNav.menus[b].Url + '">' + subNav.menus[b].Title + '</a></li>');
+
+            b++;
+          });
           $( function() {
-            $( "#menu" ).menu({
+            $( ".menu" ).menu({
               'position': {
                 my:'center top',
                 at: 'right bottom'
@@ -222,118 +271,22 @@ export default class WgoGlobalNavApplicationCustomizer
             $("ul.dropdown li ul li:has(ul)").find("a:first").append(" &raquo; ");
             console.log('This a href is working')
           });
-
-    }
-  }
-
-    let message: string = this.properties.testMessage;
-    if (!message) {
-      message = '(No properties were provided.)';
-    }
-
-    //Dialog.alert(`Hello from ${strings.Title}:\n\n${message}`);
-
-    return Promise.resolve();
-  }
-  private async _getBenefitsLinks(subGroup: string[]) {
-    //let leftLinks: any[];
-    let navLinks: string;
-    const spHttpClient: SPHttpClient = this.context.spHttpClient;
-    const currentWebUrl: string = this.context.pageContext.web.absoluteUrl;
-    this.context.spHttpClient.get(this.context.pageContext.web.absoluteUrl + `/_api/web/lists/getByTitle('GlobalNavMenu')/items`, SPHttpClient.configurations.v1)
-    .then((response: SPHttpClientResponse) => {
-      //var reactHandler = this;
-        response.json().then((benefit: any) => {
-          var benefits = benefit.value;
-          console.log("Benefits: " + benefits)
-          benefits.forEach(benefit => {
-            console.log("Benefits: " + benefit.Title)
-          })
+         
+        },
+        (error: any): void => {
+        console.log('Loading user details failed with error: ' + error);
+          
         })
-      })
+      
     
       
+
     }
   
   
-  private async _getBenefitsSubLinks(subGroup: string[]) {
-    //let leftLinks: any[];
-    let navLinks: string;
-    const spHttpClient: SPHttpClient = this.context.spHttpClient;
-    const currentWebUrl: string = this.context.pageContext.web.absoluteUrl;
-    this.context.spHttpClient.get(this.context.pageContext.web.absoluteUrl + `/_api/web/lists/getByTitle('GlobalNavMenu')/items?$filter=SubGroup eq '` + subGroup + `'`, SPHttpClient.configurations.v1)
-    .then((response: SPHttpClientResponse) => {
-      //var reactHandler = this;
-        response.json().then((benefit: any) => {
-          var benefits = benefit.value;
-          console.log("Benefits: " + benefits)
-          benefits.forEach(benefit => {
-            console.log("Benefits: " + benefit.Title)
-          })
-        })
-      })
-    
-      
-    }
+ 
   
   
-  
-
-  private async _getSubMenus() {
-    let html: string = '';
-    let benefitNames: string[] = ['Departments'];
-    await this._getBenefitsLinks(benefitNames);
-    await this._getBenefitsSubLinks(benefitNames);
-
-    
-    
-    /*defaultReports.forEach((report: GlobalNav) => 
-      html += report.Title);
-    console.log("Benefits Responses : " + html);*/
-    //let subNavs: string = '';
-      
-      //response.json();
-  
-
-  }
-  /*private async _getSubMenus() {
-    let html: string = '';
-    let benefitNames: string[] = ['Departments'];
-    let benefits: GlobalNav[] = await this._showBenefitLinks(benefitNames);
-      
-    benefits.forEach((benefit: GlobalNav) => 
-      html += benefit.Title);
-    console.log("Benefits Responses : " + html);
-    //let subNavs: string = '';
-      
-      //response.json();
-  
-
-  }
-  
-  private async _showBenefitLinks(benefitLinks: string[]):Promise<GlobalNav[]> {
-    const arrayOfBenefits: GlobalNav[] = [];
-    //const spBatch: SPHttpClientBatch = this.context.spHttpClient.beginBatch();
-    const benefitResponses: Promise<SPHttpClientResponse>[] = [];
-    
-    
-    for (const benefitLink of benefitLinks) {
-      const getBenefitsList: Promise<SPHttpClientResponse> =this.context.spHttpClient.get(this.context.pageContext.web.absoluteUrl + `/_api/web/lists/getByTitle('GlobalNavMenu')/items?$filter=SubGroup eq'` + benefitLink + `'`, SPHttpClient.configurations.v1)
-      benefitResponses.push(getBenefitsList);
-    }
-    //await spBatch.execute();
-
-    for (let benefitResponse of benefitResponses) {
-      let itemResponse:SPHttpClientResponse = await benefitResponse;
-      let responseJSON: GlobalNav = await itemResponse.json();
-      console.log("RESP JSON :" + responseJSON);
-      arrayOfBenefits.push(responseJSON)
-    }
-    return arrayOfBenefits;
-
-      
-     
-    }*/
 
   }
 
